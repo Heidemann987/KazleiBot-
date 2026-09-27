@@ -152,4 +152,8 @@ app.post('/api/webhook', async (req, res) => {
 });
 
 // ============ START ============
-app.
+app.listen(PORT, () => {
+  console.log('KanzleiBot backend started on port ' + PORT);
+  console.log('CRYPTO_PAY_TOKEN: ' + (CRYPTO_PAY_TOKEN ? 'OK' : 'MISSING'));
+  console.log('TELEGRAM_BOT_TOKEN: ' + (TELEGRAM_BOT_TOKEN ? 'OK' : 'MISSING'));
+});
