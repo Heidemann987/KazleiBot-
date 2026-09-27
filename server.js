@@ -152,8 +152,4 @@ app.post('/api/webhook', async (req, res) => {
 });
 
 // ============ START ============
-app.listen(PORT, () => {
-  console.log(`🚀 KanzleiBot backend на порту ${PORT}`);
-  console.log(`   CRYPTO_PAY_TOKEN: ${CRYPTO_PAY_TOKEN ? '✅' : '❌'}`);
-  console.log(`   TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN ? '✅' : '❌'}`);
-});
+app.
