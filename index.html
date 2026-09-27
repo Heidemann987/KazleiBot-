@@ -1,1 +1,408 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="KanzleiBot — Dokumente in Telegram. Nach den neuesten Gesetzesänderungen.">
+<meta name="theme-color" content="#229ed9">
+<title>KanzleiBot</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  *{box-sizing:border-box}
+  :root{--bg:#eef2f6;--card:#f7f9fb;--line:#e1e6eb;--accent:#229ed9;--accent-d:#147eae;--text:#17202a;--muted:#68727d}
+  body{margin:0;background:var(--bg);font:15px Arial,sans-serif;color:var(--text);-webkit-tap-highlight-color:transparent}
+  .app{max-width:430px;margin:auto;min-height:100vh;background:#fff}
+  .top{background:var(--accent);color:#fff;padding:15px;position:sticky;top:0;z-index:5}
+  .top b{font-size:18px}
+  .top small{display:block;margin-top:3px;opacity:.85}
+  .screen{display:none;padding:18px 16px 110px}
+  .screen.active{display:block;animation:fade .2s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  h1{font-size:24px;margin:4px 0 9px}
+  h2{font-size:18px;margin:0 0 8px}
+  .sub,.muted{color:var(--muted);line-height:1.45}
+  .btn{width:100%;border:0;border-radius:12px;background:var(--accent);color:#fff;padding:14px;margin:6px 0;font-weight:700;font-size:15px;cursor:pointer;transition:transform .08s,filter .15s}
+  .btn:active{transform:scale(.98)}
+  .btn:focus-visible{outline:3px solid #ffd76e;outline-offset:2px}
+  .btn.secondary{background:#e9f5fb;color:var(--accent-d)}
+  .btn.green{background:#25a66a}
+  .btn.gold{background:#e5a523}
+  .btn.red{background:#d9534f}
+  .btn.selected{background:var(--accent);color:#fff;box-shadow:0 0 0 2px #ffd76e inset}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
+  .tag{display:inline-block;padding:4px 8px;border-radius:20px;background:#e8f4fb;color:#1683b3;font-size:11px;margin:3px}
+  .chat{display:flex;flex-direction:column;gap:9px}
+  .msg{padding:11px 13px;border-radius:14px;max-width:88%;line-height:1.4}
+  .bot{background:#eef5f9}
+  .user{background:#d9fdd3;align-self:flex-end}
+  .input{width:100%;padding:13px;border:1px solid #ccd4dc;border-radius:10px;font-size:15px}
+  .input:focus{outline:none;border-color:var(--accent)}
+  .preview{max-height:340px;overflow:hidden;border-radius:8px;padding:25px;background:#ddd;filter:blur(5px);line-height:1.8;position:relative}
+  .preview::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 60%,#ddd)}
+  .lock{text-align:center;margin:16px 0 6px;position:relative;font-size:18px;font-weight:800}
+  .price{text-align:center;font-size:26px;font-weight:800;margin:12px}
+  .card .price{font-size:22px;margin:8px 0}
+  .row{display:flex;gap:8px}
+  .row>*{flex:1}
+  .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(430px,100%);background:#fff;border-top:1px solid #ddd;padding:8px 8px calc(8px + env(safe-area-inset-bottom));display:flex;gap:6px;z-index:10}
+  .nav button{flex:1;border:0;border-radius:9px;padding:9px 3px;font-size:11px;background:#fff;cursor:pointer}
+  .nav button:focus-visible{outline:2px solid var(--accent)}
+  .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%) translateY(20px);background:#17202a;color:#fff;padding:11px 16px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:90%;text-align:center;z-index:20}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .step{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;font-weight:900;font-size:16px;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <b>⚖️ KanzleiBot</b>
+    <small>Dokumente direkt in Telegram</small>
+  </header>
 
+  <section id="home" class="screen active">
+    <h1>Willkommen</h1>
+    <p class="sub">Wir erstellen Dokumente nach den neuesten Gesetzesänderungen. Persönliche Daten werden nicht abgefragt — die Felder füllen Sie selbst aus.</p>
+    <button class="btn" onclick="show('jurisdiction')">Starten</button>
+    <button class="btn secondary" onclick="show('walletGuide')">💎 Wallet einrichten</button>
+    <button class="btn secondary" onclick="show('shop')">🛒 Dokumente-Shop</button>
+  </section>
+
+  <section id="walletGuide" class="screen">
+    <h1>💎 Wallet einrichten</h1>
+    <p class="sub">Anleitung für alle, die noch kein Telegram Wallet haben. Dauert 2 Minuten.</p>
+
+    <div class="card">
+      <div class="step">1</div>
+      <b>Wallet finden</b>
+      <p class="muted">Geben Sie in der Telegram-Suche ein:</p>
+      <p style="font-size:18px;font-weight:800;color:#147eae;margin:6px 0;">@wallet</p>
+      <p class="muted">Der Bot hat einen <b>blauen Haken ✓</b> und heißt «Wallet». Nur dieser ist offiziell.</p>
+      <button class="btn secondary" onclick="openLink('https://t.me/wallet')">🌐 @wallet öffnen</button>
+    </div>
+
+    <div class="card">
+      <div class="step">2</div>
+      <b>Bot starten</b>
+      <p class="muted">Öffnen Sie den Chat mit @wallet und drücken Sie <b>«Start»</b>.</p>
+      <p class="muted">Bestätigen Sie die Nutzungsbedingungen und drücken Sie <b>«Open Wallet»</b>.</p>
+    </div>
+
+    <div class="card">
+      <div class="step">3</div>
+      <b>Sicherheit einrichten</b>
+      <p class="muted">Legen Sie einen <b>PIN-Code</b> fest (4 oder 6 Ziffern). Er wird beim Senden und Abheben benötigt.</p>
+      <p class="muted">Optional: Biometrie (Fingerabdruck) in den Einstellungen aktivieren.</p>
+    </div>
+
+    <div class="card">
+      <div class="step">4</div>
+      <b>Wallet aufladen</b>
+      <p class="muted">Im Hauptmenü des Wallets auf <b>«+»</b> oder <b>«Add Crypto»</b> drücken.</p>
+      <p class="muted">Wählen Sie eine Methode:</p>
+      <p class="muted">• <b>P2P Express</b> — Kauf per Karte. Einfachste Variante für Einsteiger.</p>
+      <p class="muted">• <b>Bankkarte</b> — falls in Ihrer Region verfügbar.</p>
+      <p class="muted">• <b>Überweisung</b> — wenn Sie bereits Krypto besitzen.</p>
+    </div>
+
+    <div class="card">
+      <div class="step">5</div>
+      <b>Fertig!</b>
+      <p class="muted">Kehren Sie zu <b>KanzleiBot</b> zurück, wählen Sie ein Dokument und drücken Sie «Kaufen» — die Zahlung öffnet sich direkt in @wallet.</p>
+      <button class="btn green" onclick="show('shop')">🛒 Zum Shop</button>
+    </div>
+
+    <div class="card" style="background:#fff8e6;border-color:#f2c14e;">
+      <b>⚠️ Wichtig</b>
+      <p class="muted">Überweisen Sie niemals Geld an «ähnliche» Bots ohne Haken. Das offizielle Wallet ist nur <b>@wallet</b>.</p>
+    </div>
+
+    <button class="btn secondary" onclick="show('home')">← Zurück</button>
+  </section>
+
+  <section id="jurisdiction" class="screen">
+    <h1>Rechtsraum wählen</h1>
+    <p class="sub">Wählen Sie Ihr Land oder übergeben Sie den Fall an einen Administrator.</p>
+    <button class="btn" onclick="jur('🇩🇪 Deutschland')">🇩🇪 Deutschland</button>
+    <button class="btn" onclick="jur('🇦🇹 Österreich')">🇦🇹 Österreich</button>
+    <button class="btn" onclick="jur('🇨🇭 Schweiz')">🇨🇭 Schweiz</button>
+    <button class="btn secondary" onclick="show('other')">🌍 Anderes Land</button>
+  </section>
+
+  <section id="other" class="screen">
+    <h1>Anderer Rechtsraum</h1>
+    <p class="sub">Automatik steht nicht zur Verfügung. Ein Administrator führt die Befragung durch und erstellt das Dokument manuell.</p>
+    <div class="card">
+      <b>Was benötigen Sie?</b>
+      <p class="muted">Beschreiben Sie Ihre Situation im Chat — der Administrator wählt Format und Einreichungsweg.</p>
+    </div>
+    <button class="btn" onclick="show('adminchat')">👤 Chat mit Administrator</button>
+    <button class="btn secondary" onclick="show('jurisdiction')">← Zurück</button>
+  </section>
+
+  <section id="intake" class="screen">
+    <h1 id="jt">🇩🇪 Deutschland</h1>
+    <div class="chat" role="log" aria-live="polite">
+      <div class="msg bot">Beschreiben Sie Ihre Situation in eigenen Worten. Bitte keine Namen, Adressen oder Telefonnummern angeben.</div>
+      <div class="msg user">Meine Bank hat mein Konto gesperrt und nennt keinen Grund.</div>
+      <div class="msg bot">Welcher Rechtsbereich passt am besten?</div>
+    </div>
+    <button class="btn" onclick="show('questions')">Bankrecht</button>
+    <button class="btn secondary" onclick="show('questions')">Weiß nicht — automatisch bestimmen</button>
+    <button class="btn secondary" onclick="show('adminchat')">👤 An Administrator übergeben</button>
+  </section>
+
+  <section id="questions" class="screen">
+    <h1>Klärende Fragen</h1>
+    <p class="sub">Es werden nur Umstände erfasst, die für das Dokument nötig sind.</p>
+    <div class="card">
+      <b>Wann erfolgte die Sperrung?</b>
+      <input class="input" id="qDate" placeholder="Zum Beispiel: gestern" aria-label="Datum">
+    </div>
+    <div class="card">
+      <b>Hat die Bank einen Grund genannt?</b>
+      <div class="row" style="margin-top:8px">
+        <button class="btn secondary" onclick="pick(this,'no')">Nein</button>
+        <button class="btn secondary" onclick="pick(this,'yes')">Ja</button>
+      </div>
+    </div>
+    <button class="btn" onclick="show('draft')">Weiter</button>
+  </section>
+
+  <section id="draft" class="screen">
+    <h1>Entwurf fertig</h1>
+    <div class="card">
+      <span class="tag">Deutschland</span>
+      <span class="tag">Bankrecht</span>
+      <span class="tag">ENTWURF</span>
+      <p><b>Dokument:</b> Antrag an die Behörde</p>
+    </div>
+    <div class="card">
+      <b>⚠️ Wichtig</b>
+      <p class="muted">Vor der Einreichung persönliche Daten, Datum und Unterschrift selbst eintragen und den Inhalt prüfen.</p>
+    </div>
+    <button class="btn" onclick="show('payment')">Vorschau ansehen</button>
+  </section>
+
+  <section id="payment" class="screen">
+    <h1>Vorschau</h1>
+    <div class="preview" aria-hidden="true">
+      <h2>ANTRAG</h2>
+      <p>An: __________________________</p>
+      <p>Von: _________________________</p>
+      <p>Adresse: ______________________</p>
+      <hr>
+      <p>Ich bitte, meinen Antrag zu prüfen.</p>
+      <p>________________________________________</p>
+      <p>________________________________________</p>
+      <p>________________________________________</p>
+    </div>
+    <div class="lock">🔒 Vollständiges Dokument nach Zahlung</div>
+    <div class="price" id="payPrice">5 USDT</div>
+    <div class="card">
+      <b>💎 Zahlung mit Krypto</b>
+      <p class="muted">Zahlung über Telegram Wallet / Crypto Bot. Bankkarten werden nicht verwendet.</p>
+      <p class="muted">Wallet: <b id="walletAddr">—</b></p>
+      <button class="btn secondary" onclick="show('walletGuide')">💎 Wallet einrichten</button>
+    </div>
+    <button class="btn" onclick="show('paid')">💎 Mit Krypto bezahlen</button>
+    <button class="btn secondary" onclick="show('adminchat')">👤 Administrator kontaktieren</button>
+  </section>
+
+  <section id="paid" class="screen">
+    <h1>✅ Zahlung bestätigt</h1>
+    <p class="sub">Vollständiges Dokument verfügbar.</p>
+    <div class="card">
+      <b>📄 Antrag_Behoerde.pdf</b>
+      <p class="muted">ENTWURF — persönliche Daten, Datum und Unterschrift selbst eintragen.</p>
+    </div>
+    <div class="row">
+      <button class="btn" onclick="toast('PDF heruntergeladen — Demo')">⬇️ Herunterladen</button>
+      <button class="btn" onclick="toast('Menü geöffnet — Demo')">↗️ Weiterleiten</button>
+    </div>
+    <button class="btn green" onclick="toast('Dokument gespeichert — Demo')">💾 Speichern</button>
+    <button class="btn secondary" onclick="show('instruction')">📌 Anleitung zur Einreichung</button>
+  </section>
+
+  <section id="instruction" class="screen">
+    <h1>Anleitung zur Einreichung</h1>
+    <div class="card">
+      <b>1. Dokument ausfüllen</b>
+      <p class="muted">Name, Adresse, Telefon, Datum und Unterschrift.</p>
+    </div>
+    <div class="card">
+      <b>2. Dokument einreichen</b>
+      <p class="muted">Nutzen Sie den offiziellen Weg für Ihren Fall.</p>
+    </div>
+    <div class="card"><b>3. Bestätigung aufbewahren</b></div>
+  </section>
+
+  <section id="shop" class="screen">
+    <h1>🛒 Dokumente-Shop</h1>
+    <div class="card">
+      <b>1 Dokument</b>
+      <div class="price">5 USDT</div>
+      <button class="btn" onclick="buy('1 Dokument','5 USDT')">Kaufen</button>
+    </div>
+    <div class="card">
+      <b>5 Dokumente</b>
+      <div class="price">15 USDT</div>
+      <button class="btn" onclick="buy('5 Dokumente','15 USDT')">Kaufen</button>
+    </div>
+    <div class="card">
+      <b>10 Dokumente</b>
+      <div class="price">35 USDT</div>
+      <button class="btn" onclick="buy('10 Dokumente','35 USDT')">Kaufen</button>
+    </div>
+  </section>
+
+  <section id="admin" class="screen">
+    <h1>🔐 Admin-Konsole</h1>
+    <p class="sub">Demo-Oberfläche.</p>
+    <div class="row">
+      <div class="card"><b>0</b><br><span class="muted">Nutzer</span></div>
+      <div class="card"><b>0</b><br><span class="muted">Fälle</span></div>
+    </div>
+    <button class="btn secondary" onclick="toast('Fall übernommen — Demo')">👤 Fall übernehmen</button>
+    <button class="btn secondary" onclick="toast('Chat geöffnet — Demo')">💬 Chat</button>
+    <button class="btn secondary" onclick="toast('Zahlungen geöffnet — Demo')">💰 Zahlungen</button>
+  </section>
+
+  <section id="adminchat" class="screen">
+    <h1>🔐 Chat mit Administrator</h1>
+    <p class="sub">Nutzer #1 · Fall #1</p>
+    <div class="chat" role="log" aria-live="polite">
+      <div class="msg bot">Guten Tag. Wann erfolgte die Sperrung?</div>
+      <div class="msg user">Gestern Abend.</div>
+    </div>
+    <input class="input" placeholder="Nachricht..." aria-label="Nachricht">
+    <button class="btn" onclick="toast('Nachricht gesendet — Demo')">Senden</button>
+    <button class="btn red" onclick="show('admin')">Chat beenden</button>
+  </section>
+
+  <nav class="nav" aria-label="Navigation">
+    <button onclick="show('home')" aria-label="Start">🏠<br>Start</button>
+    <button onclick="show('shop')" aria-label="Shop">🛒<br>Shop</button>
+    <button onclick="show('walletGuide')" aria-label="Wallet">💎<br>Wallet</button>
+    <button onclick="show('admin')" aria-label="Admin">⚙️<br>Admin</button>
+  </nav>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ================= CONFIG ================= */
+const CONFIG = {
+  wallet: 'KanzleiBot',
+  api: 'https://kanzleibot.onrender.com',
+  prices: { single: 5, pack5: 15, pack10: 35 }
+};
+
+/* ============= TELEGRAM WEBAPP ============ */
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  if (tg.setHeaderColor) tg.setHeaderColor('#229ed9');
+  if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+  if (tg.enableClosingConfirmation) tg.enableClosingConfirmation();
+}
+
+/* ================= NAV ================= */
+const history = [];
+function show(id) {
+  const cur = document.querySelector('.screen.active') ? document.querySelector('.screen.active').id : null;
+  if (cur && cur !== id) history.push(cur);
+  document.querySelectorAll('.screen').forEach(function(x) { x.classList.remove('active'); });
+  const target = document.getElementById(id);
+  if (target) target.classList.add('active');
+  window.scrollTo(0, 0);
+  syncBackButton(id);
+  if (tg && tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+}
+
+function syncBackButton(id) {
+  if (!tg || !tg.BackButton) return;
+  if (id === 'home') { tg.BackButton.hide(); return; }
+  tg.BackButton.show();
+  tg.BackButton.onClick(function() {
+    const prev = history.pop() || 'home';
+    document.querySelectorAll('.screen').forEach(function(x) { x.classList.remove('active'); });
+    const target = document.getElementById(prev);
+    if (target) target.classList.add('active');
+    window.scrollTo(0, 0);
+    syncBackButton(prev);
+  });
+}
+
+function jur(j) {
+  document.getElementById('jt').textContent = j;
+  show('intake');
+}
+
+/* ================ QUESTIONS =============== */
+function pick(btn, val) {
+  const row = btn.parentElement;
+  row.querySelectorAll('button').forEach(function(b) { b.classList.remove('selected'); });
+  btn.classList.add('selected');
+  btn.dataset.value = val;
+  if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+}
+
+/* ================= SHOP ================== */
+async function buy(title, price) {
+  document.getElementById('payPrice').textContent = price;
+  show('payment');
+
+  let plan = 'single';
+  if (title.indexOf('5 Dok') !== -1) plan = 'pack5';
+  else if (title.indexOf('10 Dok') !== -1) plan = 'pack10';
+
+  toast('Rechnung wird erstellt...');
+
+  let userId = null;
+  if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+    userId = tg.initDataUnsafe.user.id;
+  }
+
+  try {
+    const res = await fetch(CONFIG.api + '/api/invoice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan: plan, userId: userId })
+    });
+    const data = await res.json();
+    if (data.ok && data.pay_url) {
+      if (tg && tg.openLink) tg.openLink(data.pay_url);
+      else window.open(data.pay_url, '_blank');
+      toast('Rechnung erstellt — Zahlung in @CryptoBot');
+    } else {
+      toast('Fehler: Rechnung konnte nicht erstellt werden');
+    }
+  } catch (e) {
+    toast('Verbindungsfehler');
+    console.error(e);
+  }
+}
+
+/* ================= UTIL ================== */
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { t.classList.remove('show'); }, 2200);
+}
+
+function openLink(url) {
+  if (tg && tg.openLink) tg.openLink(url);
+  else window.open(url, '_blank');
+}
+
+/* ================ INIT =================== */
+const walletEl = document.getElementById('walletAddr');
+if (walletEl) walletEl.textContent = CONFIG.wallet;
+</script>
+</body>
+  </html>
