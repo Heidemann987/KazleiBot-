@@ -11,7 +11,7 @@ const CRYPTO_PAY_TOKEN = process.env.CRYPTO_PAY_TOKEN;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CRYPTO_PAY_API = 'https://pay.crypt.bot/api';
 const PORT = process.env.PORT || 3000;
-const ALLOWED_ORIGIN = 'https://Heidemann987.github.io';
+const ALLOWED_ORIGIN = 'https://heidemann987.github.io';
 
 // Тарифы (USDT) — Германия
 const PRICES = {
